@@ -106,7 +106,7 @@ Let's see leftA in action.
 Composing update functions
 ==========================
 
-It happens that these side-effecting update functions compose nicely.
+Side-effecting update functions compose nicely:
 
 ~~~~ {.haskell}
 mapA :: Applicative f => (a -> f b) -> [a] -> f [b]
