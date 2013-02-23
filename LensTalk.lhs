@@ -4,7 +4,7 @@
 Reimplementing mapM
 ===================
 
-<!--
+ <!--
 
 > import Control.Applicative hiding (Const)
 > import Data.Bits
