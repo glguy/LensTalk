@@ -144,8 +144,8 @@ mapA  :: Applicative f => (a -> f b) -> [a] -> f [b]
 > example7 :: IO (Either [Int] Char)
 > example7 = leftMapA update1 (Right 'K') -- Right 'K'
 
-Side-effect-less Updates
-========================
+Pure Updates
+============
 
 Often you don't want to perform a side-effect when updating a value. Let's
 define an applicative functor for this case and a wrapper function.
@@ -156,7 +156,7 @@ define an applicative functor for this case and a wrapper function.
 >   fmap f (Id x) = Id (f x)
 >
 > instance Applicative Id where
->   pure = Id
+>   pure          = Id
 >   Id f <*> Id x = Id (f x)
 
 > over :: ((a -> Id b) -> s -> Id t) ->
