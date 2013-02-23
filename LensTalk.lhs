@@ -42,7 +42,7 @@ together. Updating a single value requires only `Functor`:
 
 > fstF :: Functor f => (a -> f b) -> (a,c) -> f (b,c)
 > fstF f (a,c) = (\b -> (b,c)) <$> f a
->
+>  
 > sndF :: Functor f => (b -> f c) -> (a,b) -> f (a,c)
 > sndF f (a,b) = (\c -> (a,c)) <$> f b
 
