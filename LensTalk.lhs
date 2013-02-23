@@ -1,10 +1,10 @@
 % Discovering Lenses
 % Eric Mertens
 
-Does this have to be in the presentation?
-================
+Reimplementing mapM
+===================
 
-(We'll need these later)
+<!--
 
 > import Control.Applicative hiding (Const)
 > import Data.Bits
@@ -12,8 +12,8 @@ Does this have to be in the presentation?
 > import Data.Map (Map)
 > import qualified Data.Map as Map
 
-Reimplementing mapM
-===================
+-->
+
 
 We can implement the side-effecting list update function with
 slightly less restrictive constraints:
