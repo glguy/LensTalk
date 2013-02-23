@@ -36,10 +36,9 @@ Let's pick an "interesting" update function to use in our examples.
 Update functions for tuples
 ===========================
 
-These side-effecting update functions are relevant to more types than
-lists. Update functions that updated many values (like list) will
-require Applicative to link the updates together. Those that do not
-will only require Functor as we see below.
+Side-effecting update functions are useful for more types than lists.
+Updating many values (like list) require `Applicative` to link the updates
+together. Updating a single value requires only `Functor`:
 
 > fstF :: Functor f => (a -> f b) -> (a,c) -> f (b,c)
 > fstF f (a,c) = (\b -> (b,c)) <$> f a
