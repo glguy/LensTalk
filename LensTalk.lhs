@@ -42,7 +42,7 @@ together. Updating a single value requires only `Functor`:
 
 > fstF :: Functor f => (a -> f b) -> (a,c) -> f (b,c)
 > fstF f (a,c) = (\b -> (b,c)) <$> f a
->
+
 > sndF :: Functor f => (b -> f c) -> (a,b) -> f (a,c)
 > sndF f (a,b) = (\c -> (a,c)) <$> f b
 
@@ -53,10 +53,8 @@ together. Updating a single value requires only `Functor`:
 Capturing the one-place update pattern
 ======================================
 
-~~~~ {.haskell}
-fstF :: Functor f => (a -> f b) -> (a,c) -> f (b,c)
-fstF f (a,c) = (\b -> (b,c)) <$> f a
-~~~~
+< fstF :: Functor f => (a -> f b) -> (a,c) -> f (b,c)
+< fstF f (a,c) = (\b -> (b,c)) <$> f a
 
 > fstF' f p = insert p <$> f (extract p)
 >   where extract (a, _)  = a
@@ -108,10 +106,8 @@ Composing update functions
 
 Side-effecting update functions compose nicely:
 
-~~~~ {.haskell}
-mapA :: Applicative f => (a -> f b) -> [a] -> f [b]
-fstF :: Functor f => (a -> f b) -> (a,c) -> f (b,c)
-~~~~
+< mapA :: Applicative f => (a -> f b) -> [a] -> f [b]
+< fstF :: Functor f => (a -> f b) -> (a,c) -> f (b,c)
 
 > mapFstA :: Applicative f =>
 >    (a -> f b) -> [(a,c)] -> f [(b,c)]
@@ -127,11 +123,9 @@ Composing update functions (again)
 By composing "leftA" and "mapA" we get a side-effecting update function
 for the list elements of "Either [a] b":
 
-~~~~ {.haskell}
-leftA :: Applicative f =>
-   (a -> f b) -> Either a c -> f (Either b c)
-mapA  :: Applicative f => (a -> f b) -> [a] -> f [b]
-~~~~
+< leftA :: Applicative f =>
+<    (a -> f b) -> Either a c -> f (Either b c)
+< mapA  :: Applicative f => (a -> f b) -> [a] -> f [b]
 
 > leftMapA :: Applicative f =>
 >    (a -> f b) -> Either [a] c -> f (Either [b] c)
@@ -168,18 +162,14 @@ Pure update examples
 
 We can see our pure update function in action:
 
-~~~~ {.haskell}
-over fstF :: (a -> b) -> (a,c) -> (b,c)
-~~~~
+< over fstF :: (a -> b) -> (a,c) -> (b,c)
 
 > example8 :: (Int, Char)
 > example8 = over fstF (*2) (40, 'P')
 > -- (80, 'P')
 
-~~~~ {.haskell}
-over (mapA . leftA) ::
-  (a -> b) -> [Either a c] -> [Either b c]
-~~~~
+< over (mapA . leftA) ::
+<   (a -> b) -> [Either a c] -> [Either b c]
 
 > example9 :: [Either Int Char]
 > example9 = over (mapA . leftA) (+5)
@@ -218,11 +208,11 @@ into one. We can use the list monoid to help.
 
 > example11 :: [Int]
 > example11 = toListOf (mapA . fstF) [(10,'A'),(20,'B')]
--- [10,20]
+> -- [10,20]
 
 > example12 :: [Int]
 > example12 = toListOf (leftA . sndF) (Right False)
--- []
+> -- []
 
 Working with computed values
 ============================
@@ -267,17 +257,15 @@ lens Package Names
 These concepts are all reimplementations of types and functions from
 the "lens" package.
 
-~~~~ {.haskell}
-type Mutator = Id
-
-type Accessor = Const
-
-type Lens s t a b =
-  forall f. Functor f => (a -> f b) -> s -> f t
-
-type Traversal s t a b =
-  forall f. Applicative f => (a -> f b) -> s -> f t
-~~~~
+< type Mutator = Id
+<
+< type Accessor = Const
+<
+< type Lens s t a b =
+<   forall f. Functor f => (a -> f b) -> s -> f t
+<
+< type Traversal s t a b =
+<   forall f. Applicative f => (a -> f b) -> s -> f t
 
 What else?
 ==========
