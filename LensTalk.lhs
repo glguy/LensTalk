@@ -50,19 +50,19 @@ together. Updating a single value requires only `Functor`:
 > example2 = fstF update1 (10,'Z')
 > -- 10 -> 11 , (11,'Z')
 
-Capturing the update pattern
-============================
+Capturing the one-place update pattern
+======================================
 
 ~~~~ {.haskell}
 fstF :: Functor f => (a -> f b) -> (a,c) -> f (b,c)
 fstF f (a,c) = (\b -> (b,c)) <$> f a
-
-sndF :: Functor f => (b -> f c) -> (a,b) -> f (a,c)
-sndF f (a,b) = (\c -> (a,c)) <$> f b
 ~~~~
 
-There is a pattern we can extract here when defining these one-place update
-functions:
+> fstF' f p = insert p <$> f (extract p)
+>   where extract (a, _)  = a
+>         insert  (_,b) a = (a,b)
+
+Capture pattern by parametrizing on `extract` and `update`:
 
 > lens :: Functor f => (s -> a) -> (s -> b -> t) ->
 >                      (a -> f b) -> s -> f t
