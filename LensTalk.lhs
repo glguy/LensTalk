@@ -19,7 +19,7 @@ We can implement the side-effecting list update function with
 slightly less restrictive constraints:
 
 > mapA :: Applicative f => (a -> f b) -> [a] -> f [b]
-> mapA _ [] = pure []
+> mapA _ []     = pure []
 > mapA f (x:xs) = (:) <$> f x <*> mapA f xs
 
 Let's pick an "interesting" update function to use in our examples.
