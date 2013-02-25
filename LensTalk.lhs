@@ -50,10 +50,23 @@ together. Updating a single value requires only `Functor`:
 > example2 = fstF update1 (10,'Z')
 > -- 10 -> 11 , (11,'Z')
 
+Naming the update pattern
+=========================
+
+All of these functions will follow the same type pattern:
+
+> type LensLike f s t a b = (a -> f b) -> s -> f t
+
+This allows us to "simplify" our types so far:
+
+< mapA :: Applicative f => LensLike f [a] [b] a b
+< fstF :: Functor f => LensLike f (a,c) (b,c) a b
+< sndF :: Functor f => LensLike f (a,b) (a,c) b c
+
 Capturing the one-place update pattern
 ======================================
 
-< fstF :: Functor f => (a -> f b) -> (a,c) -> f (b,c)
+< fstF :: Functor f => LensLike f (a,c) (b,c) a b
 < fstF f (a,c) = (\b -> (b,c)) <$> f a
 
 > fstF' f p = insert p <$> f (extract p)
@@ -63,7 +76,7 @@ Capturing the one-place update pattern
 Capture pattern by parametrizing on `extract` and `update`:
 
 > lens :: Functor f => (s -> a) -> (s -> b -> t) ->
->                      (a -> f b) -> s -> f t
+>                      LensLike f s t a b
 > lens extract insert modify s
 >   = insert s <$> modify (extract s)
 
@@ -73,17 +86,17 @@ Update functions for sum types
 We can also write update functions on sum types.
 
 > leftA :: Applicative f =>
->    (a -> f b) -> Either a c -> f (Either b c)
+>    LensLike f (Either a c) (Either b c) a b
 > leftA f (Left  a) = Left <$> f a
 > leftA _ (Right c) = pure (Right c)
 
 > rightA :: Applicative f =>
->    (b -> f c) -> Either a b -> f (Either a c)
+>    LensLike f (Either a b) (Either a c) b c
 > rightA _ (Left  a) = pure (Left a)
 > rightA f (Right b) = Right <$> f b
 
 > maybeA :: Applicative f =>
->    (a -> f b) -> Maybe a -> f (Maybe b)
+>    LensLike f (Maybe a) (Maybe b) a b
 > maybeA _ Nothing  = pure Nothing
 > maybeA f (Just x) = Just <$> f x
 
@@ -106,11 +119,11 @@ Composing update functions
 
 Side-effecting update functions compose nicely:
 
-< mapA :: Applicative f => (a -> f b) -> [a] -> f [b]
-< fstF :: Functor f => (a -> f b) -> (a,c) -> f (b,c)
+< mapA :: Applicative f => LensLike f [a] [b] a b
+< fstF :: Functor f => LensLike f (a,c) (b,c) a b
 
 > mapFstA :: Applicative f =>
->    (a -> f b) -> [(a,c)] -> f [(b,c)]
+>    LensLike f [(a,c)] [(b,c)] a b
 > mapFstA = mapA . fstF
 
 > example5 :: IO [(Int,Char)]
@@ -124,11 +137,11 @@ By composing "leftA" and "mapA" we get a side-effecting update function
 for the list elements of "Either [a] b":
 
 < leftA :: Applicative f =>
-<    (a -> f b) -> Either a c -> f (Either b c)
+<    LensLike f (Either a c) (Either b c) a b
 < mapA  :: Applicative f => (a -> f b) -> [a] -> f [b]
 
 > leftMapA :: Applicative f =>
->    (a -> f b) -> Either [a] c -> f (Either [b] c)
+>    LensLike f (Either [a] c) (Either [b] c) a b
 > leftMapA = leftA . mapA
 
 > example6 :: IO (Either [Int] Char)
@@ -153,7 +166,7 @@ define an applicative functor for this case and a wrapper function.
 >   pure          = Id
 >   Id f <*> Id x = Id (f x)
 
-> over :: ((a -> Id b) -> s -> Id t) ->
+> over :: LensLike Id s t a b ->
 >         (a -> b) -> s -> t
 > over u f x = runId (u (Id . f) x)
 
@@ -190,7 +203,7 @@ Instead of updating a structure, we can use side-effects to read values.
 >    pure _              = Const mempty
 >    Const a <*> Const b = Const (a <> b)
 
-> view :: ((a -> Const a b) -> s -> Const a t) -> s -> a
+> view :: LensLike (Const a) s t a b -> s -> a
 > view u x = runConst (u Const x)
 
 > example10 :: Int
@@ -202,8 +215,7 @@ Collecting multiple values
 Typically, we don't want to merge all of the values we are collecting
 into one. We can use the list monoid to help.
 
-> toListOf :: ((a -> Const [a] b) -> s -> Const [a] t)
->          -> s -> [a]
+> toListOf :: LensLike (Const [a]) s t a b -> s -> [a]
 > toListOf u s = runConst (u (\a -> Const [a]) s)
 
 > example11 :: [Int]
@@ -220,7 +232,7 @@ Working with computed values
 We can create lenses to work on computed values.
 
 > bitF :: (Bits a, Functor f) =>
->     Int -> (Bool -> f Bool) -> a -> f a
+>     Int -> LensLike f a a Bool Bool
 > bitF i = lens (flip testBit i) assignBit
 >   where
 >   assignBit n True  = setBit   n i
@@ -238,8 +250,7 @@ Working with computed values (again)
 Another example is a family of lenses for looking inside a Map.
 
 > at :: (Ord k, Functor f) => k ->
->     (Maybe v -> f (Maybe v)) ->
->     Map k v -> f (Map k v)
+>     LensLike f (Map k v) (Map k v) (Maybe v) (Maybe v)
 > at k = lens (Map.lookup k) assign
 >   where
 >   assign m Nothing  = Map.delete k m
