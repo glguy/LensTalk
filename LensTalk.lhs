@@ -296,3 +296,46 @@ You've seen the basic functionality, but what's next?
     + updates that know where they are
 
 * Tons of handy combinators
+
+Using Prism
+===========
+
+The lens package provides a type "Prism" for sum types
+< type Prism s t a b
+< prism :: (b -> t) -> (s -> Either t a) -> Prism s t a b
+< review :: Prism s t a b -> b -> t
+
+which degrades into a Traversal
+
+< Prism s t a b ~~> Traversal s t a b
+
+Prism examples
+==============
+
+< _Left :: Prism (Either a c) (Either b c) a b
+< _Left = prism Left $ \x -> case x of
+<            Left  a -> Right a
+<            Right r -> Left (Right r)
+
+< review _Left           10 -- Left 10
+< review (_Left . _Left) 10 -- Left (Left 10)
+
+< toListOf (mapA . _Left) [Left 10, Right 'E', Left 20]
+< -- [10,20]
+
+< over (mapA . _Left) (*2) [Left 10, Right 'E', Left 20]
+< -- [Left 20, Right 'E', Left 40]
+
+Using Iso
+=========
+
+The lens package provides a type "Iso" which can have its direction "flipped"
+< type Iso s t a b
+< iso :: (s -> a) -> (b -> t) -> Iso s t a b
+< from :: Iso s t a b -> Iso a b s t
+< review :: Iso s t a b -> b -> t
+
+and which degrades into a Traversal and a Prism
+
+< Iso s t a b ~~> Traversal s t a b
+< Iso s t a b ~~> Prism s t a b
