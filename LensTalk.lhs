@@ -50,6 +50,23 @@ together. Updating a single value requires only `Functor`:
 > example2 = fstF update1 (10,'Z')
 > -- 10 -> 11 , (11,'Z')
 
+Capturing the one-place update pattern
+======================================
+
+< fstF :: Functor f => (a -> f b) -> (a,c) -> f (a,c)
+< fstF f (a,c) = (\b -> (b,c)) <$> f a
+
+> fstF' f p = insert p <$> f (extract p)
+>   where extract (a, _)  = a
+>         insert  (_,b) a = (a,b)
+
+Capture pattern by parametrizing on `extract` and `update`:
+
+> lens :: Functor f => (s -> a) -> (s -> b -> t) ->
+>                      (a -> f b) -> s -> f t
+> lens extract insert modify s
+>   = insert s <$> modify (extract s)
+
 Naming the update pattern
 =========================
 
@@ -60,45 +77,36 @@ All of these functions will follow the same type pattern:
 This allows us to "simplify" our types so far:
 
 < mapA :: Applicative f => LensLike f [a] [b] a b
-< fstF :: Functor f => LensLike f (a,c) (b,c) a b
-< sndF :: Functor f => LensLike f (a,b) (a,c) b c
+< fstF :: Functor f => LensLike f (a,x) (b,x) a b
+< sndF :: Functor f => LensLike f (x,a) (x,b) a b
 
-Capturing the one-place update pattern
-======================================
 
-< fstF :: Functor f => LensLike f (a,c) (b,c) a b
-< fstF f (a,c) = (\b -> (b,c)) <$> f a
-
-> fstF' f p = insert p <$> f (extract p)
->   where extract (a, _)  = a
->         insert  (_,b) a = (a,b)
-
-Capture pattern by parametrizing on `extract` and `update`:
-
-> lens :: Functor f => (s -> a) -> (s -> b -> t) ->
->                      LensLike f s t a b
-> lens extract insert modify s
->   = insert s <$> modify (extract s)
 
 Update functions for sum types
 ==============================
 
 We can also write update functions on sum types.
 
-> leftA :: Applicative f =>
->    LensLike f (Either a c) (Either b c) a b
-> leftA f (Left  a) = Left <$> f a
-> leftA _ (Right c) = pure (Right c)
-
-> rightA :: Applicative f =>
->    LensLike f (Either a b) (Either a c) b c
-> rightA _ (Left  a) = pure (Left a)
-> rightA f (Right b) = Right <$> f b
-
 > maybeA :: Applicative f =>
 >    LensLike f (Maybe a) (Maybe b) a b
 > maybeA _ Nothing  = pure Nothing
-> maybeA f (Just x) = Just <$> f x
+> maybeA f (Just a) = Just <$> f a
+
+\pause
+
+
+> leftA :: Applicative f =>
+>    LensLike f (Either a x) (Either b x) a b
+> leftA f (Left  a) = Left <$> f a
+> leftA _ (Right x) = pure (Right x)
+
+\pause
+
+> rightA :: Applicative f =>
+>    LensLike f (Either x a) (Either x b) a b
+> rightA _ (Left  x) = pure (Left x)
+> rightA f (Right a) = Right <$> f a
+
 
 Sum type examples
 =================
